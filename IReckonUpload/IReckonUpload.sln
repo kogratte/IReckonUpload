@@ -9,6 +9,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Tests", "IRec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Models", "IReckonUpload.Models\IReckonUpload.Models.csproj", "{70E0FE83-D933-4407-AD9E-955E14C5E9C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Tools", "IReckonUpload.Tools\IReckonUpload.Tools.csproj", "{26C3111B-19FF-4E54-AE28-7822EF9B3668}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Tools.Tests", "IReckonUpload.Tools.Tests\IReckonUpload.Tools.Tests.csproj", "{7B7BCA07-6E0C-436E-A709-1085FA139B65}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.DAL", "IReckonUpload.Repositories\IReckonUpload.DAL.csproj", "{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +33,18 @@ Global
 		{70E0FE83-D933-4407-AD9E-955E14C5E9C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70E0FE83-D933-4407-AD9E-955E14C5E9C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70E0FE83-D933-4407-AD9E-955E14C5E9C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26C3111B-19FF-4E54-AE28-7822EF9B3668}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26C3111B-19FF-4E54-AE28-7822EF9B3668}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26C3111B-19FF-4E54-AE28-7822EF9B3668}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26C3111B-19FF-4E54-AE28-7822EF9B3668}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B7BCA07-6E0C-436E-A709-1085FA139B65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B7BCA07-6E0C-436E-A709-1085FA139B65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B7BCA07-6E0C-436E-A709-1085FA139B65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B7BCA07-6E0C-436E-A709-1085FA139B65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using IReckonUpload.Models;
+﻿using IReckonUpload.DAL;
+using IReckonUpload.Extensions;
+using IReckonUpload.Models.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Serilog;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -32,6 +27,10 @@ namespace IReckonUpload
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
             services.Configure<AppConfigurationOptions>(appConfig);
+            services.AddJwtAuthentication(appConfig);
+            services.ConfigureDatabase(Configuration.GetConnectionString("DefaultConnection"));
+
+            services.AddSingleton<IConsumerRepository, ConsumerRepository>();
 
             services.AddSwaggerGen(c =>
             {
