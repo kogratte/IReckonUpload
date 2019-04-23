@@ -1,0 +1,44 @@
+2019-04-23 21:39:01.720 +02:00 [INF] Sending file. Request path: '/swagger-ui-standalone-preset.js'. Physical path: 'N/A'
+2019-04-23 21:39:01.739 +02:00 [INF] Sending file. Request path: '/swagger-ui-bundle.js'. Physical path: 'N/A'
+2019-04-23 21:39:01.717 +02:00 [INF] Sending file. Request path: '/swagger-ui.css'. Physical path: 'N/A'
+2019-04-23 21:39:02.031 +02:00 [INF] Sending file. Request path: '/favicon-32x32.png'. Physical path: 'N/A'
+2019-04-23 22:04:37.473 +02:00 [INF] Executing endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:04:37.546 +02:00 [INF] Route matched with {action = "Post", controller = "Upload"}. Executing action IReckonUpload.Controllers.UploadController.Post (IReckonUpload)
+2019-04-23 22:04:37.580 +02:00 [INF] Executing ObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2019-04-23 22:04:37.596 +02:00 [INF] Executed action IReckonUpload.Controllers.UploadController.Post (IReckonUpload) in 44.953900000000004ms
+2019-04-23 22:04:37.602 +02:00 [INF] Executed endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:04:52.259 +02:00 [INF] Executing endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:04:52.261 +02:00 [INF] Route matched with {action = "Post", controller = "Upload"}. Executing action IReckonUpload.Controllers.UploadController.Post (IReckonUpload)
+2019-04-23 22:04:52.265 +02:00 [INF] Executing ObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2019-04-23 22:04:52.266 +02:00 [INF] Executed action IReckonUpload.Controllers.UploadController.Post (IReckonUpload) in 3.1051ms
+2019-04-23 22:04:52.267 +02:00 [INF] Executed endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:05:07.428 +02:00 [INF] Executing endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:05:07.430 +02:00 [INF] Route matched with {action = "Post", controller = "Upload"}. Executing action IReckonUpload.Controllers.UploadController.Post (IReckonUpload)
+2019-04-23 22:05:07.445 +02:00 [INF] Executing action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload) with arguments (["toto"]) - Validation state: "Valid"
+2019-04-23 22:05:07.458 +02:00 [INF] Executed action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload), returned result Microsoft.AspNetCore.Mvc.EmptyResult in 0.1447ms.
+2019-04-23 22:05:07.460 +02:00 [INF] Executed action IReckonUpload.Controllers.UploadController.Post (IReckonUpload) in 27.351100000000002ms
+2019-04-23 22:05:07.461 +02:00 [INF] Executed endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:05:15.520 +02:00 [INF] Executing endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:05:15.522 +02:00 [INF] Route matched with {action = "Post", controller = "Upload"}. Executing action IReckonUpload.Controllers.UploadController.Post (IReckonUpload)
+2019-04-23 22:05:15.523 +02:00 [INF] Executing action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload) with arguments (["toto"]) - Validation state: "Valid"
+2019-04-23 22:05:15.525 +02:00 [INF] Executed action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload), returned result Microsoft.AspNetCore.Mvc.EmptyResult in 0.018500000000000003ms.
+2019-04-23 22:05:15.527 +02:00 [INF] Executed action IReckonUpload.Controllers.UploadController.Post (IReckonUpload) in 4.1733ms
+2019-04-23 22:05:15.529 +02:00 [INF] Executed endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:05:18.430 +02:00 [INF] Executing endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:05:18.432 +02:00 [INF] Route matched with {action = "Post", controller = "Upload"}. Executing action IReckonUpload.Controllers.UploadController.Post (IReckonUpload)
+2019-04-23 22:05:18.435 +02:00 [INF] Executing action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload) with arguments (["toto"]) - Validation state: "Valid"
+2019-04-23 22:05:18.436 +02:00 [INF] Executed action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload), returned result Microsoft.AspNetCore.Mvc.EmptyResult in 0.0018000000000000002ms.
+2019-04-23 22:05:18.437 +02:00 [INF] Executed action IReckonUpload.Controllers.UploadController.Post (IReckonUpload) in 3.1562ms
+2019-04-23 22:05:18.438 +02:00 [INF] Executed endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:05:23.289 +02:00 [INF] Executing endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:05:23.291 +02:00 [INF] Route matched with {action = "Post", controller = "Upload"}. Executing action IReckonUpload.Controllers.UploadController.Post (IReckonUpload)
+2019-04-23 22:05:23.293 +02:00 [INF] Executing action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload) with arguments (["toto"]) - Validation state: "Valid"
+2019-04-23 22:05:23.295 +02:00 [INF] Executed action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload), returned result Microsoft.AspNetCore.Mvc.EmptyResult in 0.0058000000000000005ms.
+2019-04-23 22:05:23.297 +02:00 [INF] Executed action IReckonUpload.Controllers.UploadController.Post (IReckonUpload) in 3.8163ms
+2019-04-23 22:05:23.298 +02:00 [INF] Executed endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:07:33.519 +02:00 [INF] Executing endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
+2019-04-23 22:07:33.596 +02:00 [INF] Route matched with {action = "Post", controller = "Upload"}. Executing action IReckonUpload.Controllers.UploadController.Post (IReckonUpload)
+2019-04-23 22:07:33.634 +02:00 [INF] Executing action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload) with arguments (["toto"]) - Validation state: "Valid"
+2019-04-23 22:07:33.650 +02:00 [INF] Executed action method IReckonUpload.Controllers.UploadController.Post (IReckonUpload), returned result Microsoft.AspNetCore.Mvc.EmptyResult in 0.2151ms.
+2019-04-23 22:07:33.659 +02:00 [INF] Executed action IReckonUpload.Controllers.UploadController.Post (IReckonUpload) in 57.386ms
+2019-04-23 22:07:33.661 +02:00 [INF] Executed endpoint 'IReckonUpload.Controllers.UploadController.Post (IReckonUpload)'
