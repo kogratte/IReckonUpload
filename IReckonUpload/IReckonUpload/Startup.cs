@@ -1,6 +1,12 @@
 ﻿using IReckonUpload.DAL;
+using IReckonUpload.DAL.Consumers;
+using IReckonUpload.DAL.Products;
 using IReckonUpload.Extensions;
+using IReckonUpload.Models.Business;
 using IReckonUpload.Models.Configuration;
+using IReckonUpload.Models.Consumers;
+using IReckonUpload.Tools;
+using IReckonUpload.Uploader;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +19,14 @@ namespace IReckonUpload
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public IHostingEnvironment Environment { get; }
+        public IConfiguration Configuration { get; }
+
+        public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
+            Environment = env;
             Configuration = configuration;
         }
-
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -30,7 +38,17 @@ namespace IReckonUpload
             services.AddJwtAuthentication(appConfig);
             services.ConfigureDatabase(Configuration.GetConnectionString("DefaultConnection"));
 
-            services.AddSingleton<IConsumerRepository, ConsumerRepository>();
+            if (Environment.IsDevelopment())
+            {
+                services.AddTransient<IRepository<Consumer>, FakeConsumerRepository>();
+            }
+            else
+            {
+                services.AddSingleton<IRepository<Consumer>, ConsumerRepository>();
+            }
+
+            services.AddSingleton<IRepository<Product>, ProductRepository>();
+            services.AddSingleton<IUploader, IReckonUpload.Uploader.Uploader>();
 
             services.AddSwaggerGen(c =>
             {

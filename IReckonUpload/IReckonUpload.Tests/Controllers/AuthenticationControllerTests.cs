@@ -17,6 +17,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using IReckonUpload.DAL;
+using IReckonUpload.Models.Consumers;
+using System.Linq.Expressions;
 
 namespace IReckonUpload.Tests.Controllers
 {
@@ -24,7 +26,7 @@ namespace IReckonUpload.Tests.Controllers
     public class AuthenticationControllerTests
     {
         private AppConfigurationOptions stubedConfiguration;
-        private Mock<IConsumerRepository> mockedConsumerRepository;
+        private Mock<IRepository<Consumer>> mockedConsumerRepository;
         private Mock<IOptions<AppConfigurationOptions>> mockedConfiguration;
         private AuthenticationController controller;
 
@@ -35,7 +37,7 @@ namespace IReckonUpload.Tests.Controllers
             {
 
             };
-            this.mockedConsumerRepository = new Mock<IConsumerRepository>();
+            this.mockedConsumerRepository = new Mock<IRepository<Consumer>>();
             this.mockedConfiguration = new Mock<IOptions<AppConfigurationOptions>>();
             this.mockedConfiguration.SetupGet(c => c.Value).Returns(this.stubedConfiguration);
             this.controller = new AuthenticationController(this.mockedConsumerRepository.Object, this.mockedConfiguration.Object);
@@ -58,21 +60,24 @@ namespace IReckonUpload.Tests.Controllers
         [TestMethod]
         public void ItShouldReturnNullIfCredentialsDoesNotMatchAKnownUser()
         {
-            this.mockedConsumerRepository.Setup(r => r.Find(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((IConsumer)null)
-                .Verifiable();
             var request = new LoginRequest { Username = "toto", Password = "*******" };
+
+            this.mockedConsumerRepository.Setup(r => r.FindOne(It.IsAny<Expression<Func<Consumer, bool>>>()))
+                .Returns((Consumer)null)
+                .Verifiable();
+
             var result = this.controller.Post(request);
 
             var hashedPwd = Sha256Builder.Compute(request.Password);
 
-            this.mockedConsumerRepository.Verify(r => r.Find("toto", hashedPwd), Times.Once);
+            this.mockedConsumerRepository.Verify(r => r.FindOne(It.IsAny<Expression<Func<Consumer, bool>>>()), Times.Once);
             result.ShouldBeNull();
         }
 
         [TestMethod]
         public void ItShouldReturnAResponseContainingTokenIfCredentialsMatchAKnownUser()
         {
+            var request = new LoginRequest { Username = "toto", Password = "*******" };
             this.stubedConfiguration.JsonWebTokenConfig = new JsonWebTokenConfiguration
             {
                 Issuer = "test",
@@ -80,12 +85,19 @@ namespace IReckonUpload.Tests.Controllers
                 Validity = 1
             };
 
-            var mockedUser = new Mock<IConsumer>();
+            var mockedUser = new Consumer();
 
-            this.mockedConsumerRepository.Setup(r => r.Find(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(mockedUser.Object);
+            this.mockedConsumerRepository.Setup(r => r.FindOne(It.IsAny<Expression<Func<Consumer, bool>>>()))
+                .Callback<Expression<Func<Consumer, bool>>>(expr =>
+                {
+                    expr.Compile().Invoke(new Consumer
+                    {
+                        Username = request.Username,
+                        Password = Sha256Builder.Compute(request.Password)
+                    }).ShouldBeTrue();
+                })
+                .Returns(mockedUser);
 
-            var request = new LoginRequest { Username = "toto", Password = "*******" };
             var result = this.controller.Post(request);
 
             result.ShouldBeOfType<LoginSuccessResponse>();
@@ -95,10 +107,9 @@ namespace IReckonUpload.Tests.Controllers
         [TestMethod]
         public async Task ItShouldBeOkToAuthenticateUsingApi()
         {
-            var stubedKnownConsumer = new Mock<IConsumer>();
+            this.mockedConsumerRepository.Setup(r => r.FindOne(It.IsAny<Expression<Func<Consumer, bool>>>()))
 
-            this.mockedConsumerRepository.Setup(r => r.Find(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(stubedKnownConsumer.Object);
+                .Returns(new Consumer());
 
             var projectDir = Directory.GetCurrentDirectory();
             var configPath = Path.Combine(projectDir, "appsettings.IntegrationTest.json");
@@ -109,7 +120,8 @@ namespace IReckonUpload.Tests.Controllers
                     conf.AddJsonFile(configPath);
                 })
                 .UseStartup<Startup>()
-                .ConfigureTestServices(serviceCollection => {
+                .ConfigureTestServices(serviceCollection =>
+                {
                     serviceCollection.AddSingleton(this.mockedConsumerRepository.Object);
                 }));
 

@@ -1,4 +1,5 @@
 ﻿using IReckonUpload.DAL;
+using IReckonUpload.Models.Consumers;
 using Microsoft.EntityFrameworkCore;
 
 namespace IReckonUpload
@@ -9,6 +10,6 @@ namespace IReckonUpload
         {
         }
 
-        public DbSet<IConsumer> Consumers { get; set; }
+        public DbSet<Consumer> Consumers { get; set; }
     }
 }

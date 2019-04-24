@@ -3,17 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28809.33
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload", "IReckonUpload\IReckonUpload.csproj", "{62C8DB64-0E59-4520-825E-E9A5B9734CD6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IReckonUpload", "IReckonUpload\IReckonUpload.csproj", "{62C8DB64-0E59-4520-825E-E9A5B9734CD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Tests", "IReckonUpload.Tests\IReckonUpload.Tests.csproj", "{376BBC22-534D-4053-A230-745C629915C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IReckonUpload.Tests", "IReckonUpload.Tests\IReckonUpload.Tests.csproj", "{376BBC22-534D-4053-A230-745C629915C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Models", "IReckonUpload.Models\IReckonUpload.Models.csproj", "{70E0FE83-D933-4407-AD9E-955E14C5E9C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IReckonUpload.Models", "IReckonUpload.Models\IReckonUpload.Models.csproj", "{70E0FE83-D933-4407-AD9E-955E14C5E9C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Tools", "IReckonUpload.Tools\IReckonUpload.Tools.csproj", "{26C3111B-19FF-4E54-AE28-7822EF9B3668}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IReckonUpload.Tools", "IReckonUpload.Tools\IReckonUpload.Tools.csproj", "{26C3111B-19FF-4E54-AE28-7822EF9B3668}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Tools.Tests", "IReckonUpload.Tools.Tests\IReckonUpload.Tools.Tests.csproj", "{7B7BCA07-6E0C-436E-A709-1085FA139B65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IReckonUpload.Tools.Tests", "IReckonUpload.Tools.Tests\IReckonUpload.Tools.Tests.csproj", "{7B7BCA07-6E0C-436E-A709-1085FA139B65}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.DAL", "IReckonUpload.Repositories\IReckonUpload.DAL.csproj", "{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IReckonUpload.DAL", "IReckonUpload.Repositories\IReckonUpload.DAL.csproj", "{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Uploader", "IReckonUpload.Uploader\IReckonUpload.Uploader.csproj", "{CA43DE71-3760-405C-9353-81555E9F0D0D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA43DE71-3760-405C-9353-81555E9F0D0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA43DE71-3760-405C-9353-81555E9F0D0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA43DE71-3760-405C-9353-81555E9F0D0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA43DE71-3760-405C-9353-81555E9F0D0D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
