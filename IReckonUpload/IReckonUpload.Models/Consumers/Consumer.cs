@@ -1,9 +1,8 @@
-﻿using IReckonUpload.DAL;
-
-namespace IReckonUpload.Models.Consumers
+﻿namespace IReckonUpload.Models.Consumers
 {
-    public class Consumer : IConsumer
+    public class Consumer
     {
+        public int Id { get; set; }
         public string Username {get; set; }
         public string Password { get; set; }
     }

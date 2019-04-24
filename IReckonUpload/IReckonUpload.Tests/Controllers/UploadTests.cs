@@ -1,5 +1,6 @@
 ﻿using IReckonUpload.DAL;
 using IReckonUpload.Models.Authentication;
+using IReckonUpload.Models.Consumers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
@@ -11,6 +12,7 @@ using Newtonsoft.Json;
 using Shouldly;
 using System;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -46,7 +48,7 @@ namespace IReckonUpload.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task UploadEndpointShouldRespondWithBadRequestIfCalledWithValidJWTAndBullshitAsPayload()
+        public async Task UploadEndpointShouldRespondWithBadRequestIfCalledWithValidJWTAndTheWrongContentType()
         {
             var jwt = await GetJWT();
 
@@ -57,16 +59,16 @@ namespace IReckonUpload.Tests.Controllers
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
 
             var response = await _client.PostAsync("/api/upload", new StringContent("'toto'", Encoding.UTF8, "text/json"));
-            ((int)response.StatusCode).ShouldBe(StatusCodes.Status401Unauthorized);
+            ((int)response.StatusCode).ShouldBe(StatusCodes.Status400BadRequest);
         }
 
         private async Task<string> GetJWT()
         {
-            var stubedKnownConsumer = new Mock<IConsumer>();
-            var mockedConsumerRepository = new Mock<IConsumerRepository>();
+            var stubedKnownConsumer = new Consumer();
+            var mockedConsumerRepository = new Mock<IRepository<Consumer>>();
 
-            mockedConsumerRepository.Setup(r => r.Find(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(stubedKnownConsumer.Object);
+            mockedConsumerRepository.Setup(r => r.FindOne(It.IsAny<Expression<Func<Consumer, bool>>>()))
+                .Returns(stubedKnownConsumer);
 
             var _server = new TestServer(GetTestHostBuilder()
                 .ConfigureTestServices(serviceCollection => {

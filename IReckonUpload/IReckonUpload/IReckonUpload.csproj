@@ -20,6 +20,7 @@
     <ProjectReference Include="..\IReckonUpload.Models\IReckonUpload.Models.csproj" />
     <ProjectReference Include="..\IReckonUpload.Repositories\IReckonUpload.DAL.csproj" />
     <ProjectReference Include="..\IReckonUpload.Tools\IReckonUpload.Tools.csproj" />
+    <ProjectReference Include="..\IReckonUpload.Uploader\IReckonUpload.Uploader.csproj" />
   </ItemGroup>
 
 </Project>

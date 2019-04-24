@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using IReckonUpload.DAL;
+using IReckonUpload.Models.Consumers;
 
 namespace IReckonUpload.Controllers
 {
@@ -15,10 +16,10 @@ namespace IReckonUpload.Controllers
     [ApiController]
     public class AuthenticationController: ControllerBase
     {
-        private IConsumerRepository _consumerRepository;
+        private IRepository<Consumer> _consumerRepository;
         private readonly AppConfigurationOptions _config;
 
-        public AuthenticationController(IConsumerRepository consumerRepository, IOptions<AppConfigurationOptions> configuration)
+        public AuthenticationController(IRepository<Consumer> consumerRepository, IOptions<AppConfigurationOptions> configuration)
         {
             _consumerRepository = consumerRepository;
             _config = configuration?.Value;
@@ -33,7 +34,7 @@ namespace IReckonUpload.Controllers
 
         public LoginSuccessResponse Post(LoginRequest loginRequest)
         {
-            IConsumer user = _consumerRepository.Find(loginRequest.Username, Sha256Builder.Compute(loginRequest.Password));
+            Consumer user = _consumerRepository.FindOne(x => x.Username == loginRequest.Username && x.Password == Sha256Builder.Compute(loginRequest.Password));
 
             if (null == user)
             {
