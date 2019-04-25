@@ -1,10 +1,14 @@
-﻿using IReckonUpload.Models.Business;
+﻿using IReckonUpload.Business.ModelConverter;
+using IReckonUpload.Business.ModelConverter.Core;
+using IReckonUpload.Business.ModelConverter.Middlewares;
+using IReckonUpload.Models.Business;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Shouldly;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace IReckonUpload.Business.Tests
@@ -12,13 +16,21 @@ namespace IReckonUpload.Business.Tests
     [TestClass]
     public class FileToModelConvertTests
     {
-        private FileToModelConverter converter;
+        private IFileToModelConverter converter;
+        private ServiceCollection services;
 
         [TestInitialize]
         public void Init()
         {
-            this.converter = new FileToModelConverter();
+            this.services = new ServiceCollection();
+            services.AddTransient<ICheckSourceFileMiddleware, CheckSourceFileMiddleware>();
+
+            var provider = services.BuildServiceProvider();
+            
+
+            this.converter = new FileToModelConverter(provider, new Mock<ILogger<FileToModelConverter>>().Object);
         }
+
         [TestCleanup]
         public void Cleanup()
         {
@@ -33,7 +45,9 @@ namespace IReckonUpload.Business.Tests
         {
             await Should.ThrowAsync<ArgumentException>(async () =>
             {
-                await this.converter.GetFromFile(null);
+                this.converter.Use<CheckSourceFileMiddleware>();
+
+                await this.converter.ProcessFromFile(null, (p) => { });
             });
         }
 
@@ -42,16 +56,21 @@ namespace IReckonUpload.Business.Tests
         {
             await Should.ThrowAsync<ArgumentException>(async () =>
             {
-                await this.converter.GetFromFile(string.Empty);
+                this.converter.Use<CheckSourceFileMiddleware>();
+
+                await this.converter.ProcessFromFile(string.Empty, (p) => { });
             });
         }
 
         [TestMethod]
         public async Task ShouldThrowAnNullReferenceExceptionIfFileIsNotFound()
         {
+
             await Should.ThrowAsync<NullReferenceException>(async () =>
             {
-                await this.converter.GetFromFile("./toto.tmp");
+                this.converter.Use<ICheckSourceFileMiddleware>();
+
+                await this.converter.ProcessFromFile("./toto.tmp");
             });
         }
 
@@ -67,27 +86,30 @@ namespace IReckonUpload.Business.Tests
                 file.WriteLine("00000002groe74,2,broek,Gaastra,8,0,1-3 werkdagen,baby,74,groen");
             }
 
-            IEnumerable<Product> model = await this.converter.GetFromFile("./testFile.tmp");
+            var productCount = 0;
+            await this.converter.ProcessFromFile("./testFile.tmp", (product) => {
+                product.Id.ShouldBe(0);
+                product.Key.ShouldBe("00000002groe74");
+                product.ArticleCode.ShouldBe("2");
+                product.Color.ShouldNotBeNull();
+                product.Color.Id.ShouldBe(0);
+                product.Color.Code.ShouldBe("broek");
+                product.Color.Label.ShouldBe("groen");
+                product.Description.ShouldBe("Gaastra");
+                product.Price.ShouldBe(8);
+                product.DiscountedPrice.ShouldBe(0);
+                product.DeliveredIn.ShouldNotBeNull();
+                product.DeliveredIn.RangeStart.ShouldBe(1);
+                product.DeliveredIn.RangeEnd.ShouldBe(3);
+                product.DeliveredIn.Unit.ShouldBe("werkdagen");
+                product.Q1.ShouldBe("baby");
+                product.Size.ShouldBe("74");
 
-            model.ShouldNotBeNull();
-            model.Count().ShouldBe(1, "A Single product should be extracted from this file");
-            Product product = model.Single();
-            product.Id.ShouldBe(0);
-            product.Key.ShouldBe("00000002groe74");
-            product.ArticleCode.ShouldBe("2");
-            product.Color.ShouldNotBeNull();
-            product.Color.Id.ShouldBe(0);
-            product.Color.Code.ShouldBe("broek");
-            product.Color.Label.ShouldBe("groen");
-            product.Description.ShouldBe("Gaastra");
-            product.Price.ShouldBe(8);
-            product.DiscountedPrice.ShouldBe(0);
-            product.DeliveredIn.ShouldNotBeNull();
-            product.DeliveredIn.RangeStart.ShouldBe(1);
-            product.DeliveredIn.RangeEnd.ShouldBe(3);
-            product.DeliveredIn.Unit.ShouldBe("werkdagen");
-            product.Q1.ShouldBe("baby");
-            product.Size.ShouldBe("74");
+                productCount++;
+            });
+
+            productCount.ShouldBe(1, "A Single product should be extracted from this file");
+
         }
 
         [TestMethod]
@@ -103,19 +125,31 @@ namespace IReckonUpload.Business.Tests
                 file.WriteLine("00000002groe75,2,broek,Gaastra,8,0,1-3 werkdag,boy,76,groen");
             }
 
-            IEnumerable<Product> products = await this.converter.GetFromFile("./testFile.tmp");
+            int productCount = 0;
+            await this.converter.ProcessFromFile("./testFile.tmp", (product) =>
+            {
+                productCount++;
 
-            products.Count().ShouldBe(2);
+                switch (productCount) {
+                    case 1:
+                        product.Key.ShouldBe("00000002groe74");
+                        product.DeliveredIn.Unit.ShouldBe("werkdagen");
+                        product.Q1.ShouldBe("baby");
+                        product.Size.ShouldBe("74");
+                        break;
 
-            products.First().Key.ShouldBe("00000002groe74");
-            products.First().DeliveredIn.Unit.ShouldBe("werkdagen");
-            products.First().Q1.ShouldBe("baby");
-            products.First().Size.ShouldBe("74");
+                    case 2:
+                        product.Key.ShouldBe("00000002groe75");
+                        product.DeliveredIn.Unit.ShouldBe("werkdag");
+                        product.Q1.ShouldBe("boy");
+                        product.Size.ShouldBe("76");
+                        break;
 
-            products.Last().Key.ShouldBe("00000002groe75");
-            products.Last().DeliveredIn.Unit.ShouldBe("werkdag");
-            products.Last().Q1.ShouldBe("boy");
-            products.Last().Size.ShouldBe("76");
+                    default:
+                        Assert.Inconclusive("You should never be here!!!");
+                        break;
+                }
+            });
         }
 
         [TestMethod]
@@ -131,10 +165,17 @@ namespace IReckonUpload.Business.Tests
                 file.WriteLine("00000002groe75,2,broek,Gaastra,8,0,1-3 werkdag,boy,76,groen");
             }
 
-            IEnumerable<Product> products = await this.converter.GetFromFile("./testFile.tmp");
-
-            products.Count().ShouldBe(2);
-            products.First().Color.ShouldBeSameAs(products.Last().Color);
+            Color colorRef = null;
+            await this.converter.ProcessFromFile("./testFile.tmp", (p) =>
+            {
+                if (colorRef == null)
+                {
+                    colorRef = p.Color;
+                } else
+                {
+                    p.Color.ShouldBeSameAs(colorRef);
+                }
+            });
         }
 
         [TestMethod]
@@ -150,10 +191,20 @@ namespace IReckonUpload.Business.Tests
                 file.WriteLine("00000002groe75,2,broek,Gaastra,8,0,1-3 werkdagen,boy,76,groen");
             }
 
-            IEnumerable<Product> products = await this.converter.GetFromFile("./testFile.tmp");
+            DeliveryRange rangeRef = null;
 
-            products.Count().ShouldBe(2);
-            products.First().DeliveredIn.ShouldBeSameAs(products.Last().DeliveredIn);
+            await this.converter.ProcessFromFile("./testFile.tmp", (p) =>
+            {
+                if (rangeRef == null)
+                {
+                    rangeRef = p.DeliveredIn;
+                }
+                else
+                {
+                    p.DeliveredIn.ShouldBeSameAs(rangeRef);
+                }
+            });
         }
+
     }
 }

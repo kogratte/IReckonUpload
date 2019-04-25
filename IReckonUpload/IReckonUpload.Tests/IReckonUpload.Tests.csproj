@@ -27,5 +27,8 @@
     <ProjectReference Include="..\IReckonUpload.Tools\IReckonUpload.Tools.csproj" />
     <ProjectReference Include="..\IReckonUpload\IReckonUpload.csproj" />
   </ItemGroup>
-
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp2.0\SwaggerDemo.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
 </Project>

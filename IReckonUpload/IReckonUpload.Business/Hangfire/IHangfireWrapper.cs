@@ -1,6 +1,6 @@
 ﻿using Hangfire;
 
-namespace IReckonUpload.Business
+namespace IReckonUpload.Business.Hangfire
 {
     public interface IHangfireWrapper
     {

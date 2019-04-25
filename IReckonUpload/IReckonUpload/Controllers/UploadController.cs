@@ -1,7 +1,7 @@
 ﻿using Hangfire;
-using IReckonUpload.Business;
-using IReckonUpload.Business.Jobs;
+using IReckonUpload.Business.Hangfire;
 using IReckonUpload.DAL;
+using IReckonUpload.Jobs;
 using IReckonUpload.Models.Configuration;
 using IReckonUpload.Models.Internal;
 using IReckonUpload.Tools;
@@ -62,17 +62,17 @@ namespace IReckonUpload.Controllers
             try
             {
                 EnsureJsonDirectoryExists();
-                
+
                 IUploadResult result = await _fileUploader.UploadFromStreamAsync(Request, HttpContext, _defaultFormOptions);
                 var uploadedFiles = new List<UploadedFile>();
 
                 result.Files.ToList().ForEach(file =>
                 {
-                    var jsonFilePath = _appConfig.JsonStorageDirectory + "/" + Guid.NewGuid() + ".json";
+                    string jsonFilePath = _appConfig.JsonStorageDirectory + "/" + Guid.NewGuid() + ".json";
 
-                    var dbStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreIntoDatabase>(x => x.Execute(file.TemporaryLocation, null));
-                    var jsonStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreAsJsonFile>(x => x.Execute(file.TemporaryLocation, jsonFilePath, null));
-
+                    //var dbStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreIntoDatabase>(x => x.Execute(file.TemporaryLocation, null));
+                    //var jsonStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreAsJsonFile>(x => x.Execute(file.TemporaryLocation, jsonFilePath, null));
+                    var importJobId = _hangfire.BackgroundJobClient.Enqueue<IImportContentFromFile>(x => x.Execute(file.TemporaryLocation, jsonFilePath));
                     try
                     {
                         this._transactionService.ExecuteAsync((dbCtx) =>
@@ -83,8 +83,7 @@ namespace IReckonUpload.Controllers
                                 JsonFilePath = jsonFilePath,
                                 StoreTasks = new List<StoreTask>
                                 {
-                                    new StoreTask { JobId = dbStoreJobId },
-                                    new StoreTask { JobId = jsonStoreJobId }
+                                    new StoreTask { JobId = importJobId }
                                 }
                             };
 
@@ -96,8 +95,7 @@ namespace IReckonUpload.Controllers
                     }
                     catch (Exception)
                     {
-                        _hangfire.BackgroundJobClient.Delete(jsonStoreJobId);
-                        _hangfire.BackgroundJobClient.Delete(dbStoreJobId);
+                        _hangfire.BackgroundJobClient.Delete(importJobId);
 
                         throw;
                     }

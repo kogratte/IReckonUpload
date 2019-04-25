@@ -1,8 +1,14 @@
 ﻿using Hangfire;
 using IReckonUpload.Business;
+using IReckonUpload.Business.Hangfire;
 using IReckonUpload.Business.Jobs;
+using IReckonUpload.Business.JobStatusManagement;
+using IReckonUpload.Business.ModelConverter;
+using IReckonUpload.Business.ModelConverter.Core;
+using IReckonUpload.Business.ModelConverter.Middlewares;
 using IReckonUpload.DAL;
 using IReckonUpload.Extensions;
+using IReckonUpload.Jobs;
 using IReckonUpload.Models.Configuration;
 using IReckonUpload.Models.Consumers;
 using IReckonUpload.Models.Internal;
@@ -23,7 +29,7 @@ using System.IO;
 
 namespace IReckonUpload
 {
-   
+
     public class Startup
     {
         public IHostingEnvironment Environment { get; }
@@ -46,7 +52,7 @@ namespace IReckonUpload
             services.Configure<AppConfigurationOptions>(appConfig);
             services.AddJwtAuthentication(appConfig);
             services.ConfigureDatabase(connectionString);
-    // Always reuse the same.
+            // Always reuse the same.
             services.AddScoped<DbContext, AppDbContext>();
             services.AddSingleton<IHangfireWrapper, HangfireWrapper>();
             services.AddSingleton(new JsonSerializerSettings
@@ -66,6 +72,12 @@ namespace IReckonUpload
             services.AddScoped<IRepository<UploadedFile>, GenericRepository<UploadedFile>>();
             services.AddSingleton<IUploader, IReckonUpload.Uploader.Uploader>();
             services.AddSingleton<IFileToModelConverter, FileToModelConverter>();
+            services.AddScoped<IImportContentFromFile, ImportContentFromFile>();
+
+            // Register middlewares-
+            services.AddTransient<ICheckSourceFileMiddleware, CheckSourceFileMiddleware>();
+            services.AddTransient<IStoreIntoDatabase, StoreIntoDatabase>();
+            services.AddTransient<IStoreAsJsonFile, StoreAsJsonFile>();
 
             if (Environment.IsDevelopment())
             {
@@ -79,9 +91,14 @@ namespace IReckonUpload
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = appConfig["ApplicationName"] + " API", Version = "v1" });
-                var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "SwaggerDemo.xml");
 
-                c.IncludeXmlComments(filePath);
+                if (!Environment.IsEnvironment("IntegrationTest"))
+                {
+
+                    var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "SwaggerDemo.xml");
+
+                    c.IncludeXmlComments(filePath);
+                }
             });
 
 

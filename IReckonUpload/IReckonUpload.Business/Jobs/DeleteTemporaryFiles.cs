@@ -1,7 +1,7 @@
 ﻿using Hangfire;
+using IReckonUpload.Business.JobStatusManagement;
 using IReckonUpload.DAL;
 using IReckonUpload.Models.Internal;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

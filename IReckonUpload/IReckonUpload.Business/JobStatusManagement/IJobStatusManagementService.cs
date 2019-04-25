@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace IReckonUpload.Business
+namespace IReckonUpload.Business.JobStatusManagement
 {
     public interface IJobStatusManagementService
     {

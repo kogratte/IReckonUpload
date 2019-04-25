@@ -81,7 +81,8 @@ namespace IReckonUpload.Tests.Controllers
             var _server = new TestServer(GetTestHostBuilder()
                 .ConfigureTestServices(serviceCollection => {
                     serviceCollection.AddSingleton(mockedConsumerRepository.Object);
-                }));
+                }))
+               ;
 
             var _client = _server.CreateClient();
             var request = new LoginRequest
