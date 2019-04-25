@@ -1,10 +1,8 @@
 ﻿using Hangfire;
-using Microsoft.Extensions.Logging;
+using Hangfire.Server;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,50 +10,50 @@ namespace IReckonUpload.Business.Jobs
 {
     public interface IStoreAsJsonFile
     {
-        Task Execute(string temporaryFileLocation, string targetFileName);
+        Task Execute(string temporaryFileLocation, string targetFileName, PerformContext context);
     }
 
     public class StoreAsJsonFile : IStoreAsJsonFile
     {
+        private readonly IJobStatusManagementService _jobStatusManagementService;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
         private readonly IFileToModelConverter _converter;
-        private readonly ILogger<StoreIntoDatabase> _logger;
-        private readonly Guid uid;
 
-        public StoreAsJsonFile(ILogger<StoreIntoDatabase> logger, IFileToModelConverter converter, JsonSerializerSettings jsonSerializerSettings)
+        public StoreAsJsonFile(IFileToModelConverter converter, 
+            JsonSerializerSettings jsonSerializerSettings,
+            IJobStatusManagementService jobStatusManagementService)
         {
+            _jobStatusManagementService = jobStatusManagementService;
             _jsonSerializerSettings = jsonSerializerSettings;
             _converter = converter;
-            _logger = logger;
-
-            this.uid = Guid.NewGuid();
         }
 
         [AutomaticRetry(Attempts = 3)]
-        public async Task Execute(string temporaryFileLocation, string targetFilename)
+        public async Task Execute(string temporaryFileLocation, 
+            string targetFilename, 
+            PerformContext context)
         {
-      
-            var products = await this._converter.GetFromFile(temporaryFileLocation);
             try
             {
-                using (var fs = new FileStream(targetFilename, FileMode.Create))
+                using (var tw = new StreamWriter(targetFilename, false, Encoding.UTF8, 65536))
                 {
-                    fs.Write(Encoding.UTF8.GetBytes("[" + Environment.NewLine));
-
-                    foreach (var product in products)
+                    tw.WriteLine("[");
+                    await this._converter.DoFromFile(temporaryFileLocation, async product =>
                     {
                         var jsonProduct = JsonConvert.SerializeObject(product, Formatting.Indented, _jsonSerializerSettings);
-                        await fs.WriteAsync(Encoding.UTF8.GetBytes(jsonProduct + "," + Environment.NewLine));
-                    }
+                        tw.WriteLine(jsonProduct + ",");
+                    });
 
-                    await fs.WriteAsync(Encoding.UTF8.GetBytes("]" + Environment.NewLine));
+                    tw.WriteLine("]");
                 }
-                _logger.LogInformation($"{products.Count()} products written to {targetFilename}");
+
+                await _jobStatusManagementService.MarkJobAsDone(context.BackgroundJob.Id);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                _logger.LogError(e.Message, e);
                 File.Delete(targetFilename);
+
+                throw;
             }
         }
     }

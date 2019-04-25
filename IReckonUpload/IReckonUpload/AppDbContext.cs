@@ -1,6 +1,7 @@
 ﻿using IReckonUpload.DAL;
 using IReckonUpload.Models.Business;
 using IReckonUpload.Models.Consumers;
+using IReckonUpload.Models.Internal;
 using Microsoft.EntityFrameworkCore;
 
 namespace IReckonUpload
@@ -14,5 +15,7 @@ namespace IReckonUpload
         public DbSet<Consumer> Consumers { get; set; }
 
         public DbSet<Product> Products { get; set; }
+
+        public DbSet<UploadedFile> UploadedFiles { get; set; }
     }
 }

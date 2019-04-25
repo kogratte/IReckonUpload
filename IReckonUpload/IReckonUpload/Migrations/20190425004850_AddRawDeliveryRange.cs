@@ -31,7 +31,7 @@ namespace IReckonUpload.Migrations
                 column: "DeliveredInId",
                 principalTable: "DeliveryRange",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -60,7 +60,7 @@ namespace IReckonUpload.Migrations
                 column: "DelivedInId",
                 principalTable: "DeliveryRange",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Cascade);
         }
     }
 }

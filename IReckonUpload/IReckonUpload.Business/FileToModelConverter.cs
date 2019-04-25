@@ -25,14 +25,7 @@ namespace IReckonUpload.Business
         {
             InitImport();
 
-            if (string.IsNullOrEmpty(pathToFile))
-            {
-                throw new ArgumentNullException(nameof(pathToFile));
-            }
-            if (!File.Exists(pathToFile))
-            {
-                throw new NullReferenceException(nameof(pathToFile));
-            }
+            CheckSourceFile(pathToFile);
 
             using (var fs = new FileStream(pathToFile, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
@@ -43,25 +36,31 @@ namespace IReckonUpload.Business
                     while (!sr.EndOfStream)
                     {
                         var line = await sr.ReadLineAsync();
-                        var elements = line.Split(',');
-                        var product = new Product
+                        if (!string.IsNullOrEmpty(line))
                         {
-                            Key = elements[headers["Key"]],
-                            ArticleCode = elements[headers["ArtikelCode"]],
-                            Color = BuildColor(elements, headers),
-                            Description = elements[headers["Description"]],
-                            Price = double.Parse(elements[headers["Price"]]),
-                            DiscountedPrice = double.Parse(elements[headers["DiscountPrice"]]),
-                            Q1 = elements[headers["Q1"]],
-                            Size = elements[headers["Size"]],
-                            DeliveredIn = BuildDeliveryRange(elements, headers)
-                        };
-
-                        products.Add(product);
+                            products.Add(BuildProduct(line, headers));
+                        }
                     }
                 }
             }
             return products;
+        }
+
+        private Product BuildProduct(string line, Dictionary<string, int> headers)
+        {
+            var elements = line.Split(',');
+            return new Product
+            {
+                Key = elements[headers["Key"]],
+                ArticleCode = elements[headers["ArtikelCode"]],
+                Color = BuildColor(elements, headers),
+                Description = elements[headers["Description"]],
+                Price = double.Parse(elements[headers["Price"]]),
+                DiscountedPrice = double.Parse(elements[headers["DiscountPrice"]]),
+                Q1 = elements[headers["Q1"]],
+                Size = elements[headers["Size"]],
+                DeliveredIn = BuildDeliveryRange(elements, headers)
+            };
         }
 
         private Color BuildColor(string[] elements, Dictionary<string, int> headers)
@@ -120,6 +119,42 @@ namespace IReckonUpload.Business
             }
 
             return headers;
+        }
+
+        public async Task DoFromFile(string pathToFile, Action<Product> process)
+        {
+            InitImport();
+
+            CheckSourceFile(pathToFile);
+
+            using (var fs = new FileStream(pathToFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                using (var sr = new StreamReader(fs))
+                {
+                    var headers = await GetHeaders(sr);
+
+                    while (!sr.EndOfStream)
+                    {
+                        var line = await sr.ReadLineAsync();
+                        if (!string.IsNullOrEmpty(line))
+                        {
+                            process(BuildProduct(line, headers));
+                        }
+                    }
+                }
+            }
+        }
+
+        private void CheckSourceFile(string pathToFile)
+        {
+            if (string.IsNullOrEmpty(pathToFile))
+            {
+                throw new ArgumentNullException(nameof(pathToFile));
+            }
+            if (!File.Exists(pathToFile))
+            {
+                throw new NullReferenceException(nameof(pathToFile));
+            }
         }
     }
 }

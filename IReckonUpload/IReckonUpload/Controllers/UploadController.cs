@@ -1,7 +1,9 @@
 ﻿using Hangfire;
 using IReckonUpload.Business;
 using IReckonUpload.Business.Jobs;
+using IReckonUpload.DAL;
 using IReckonUpload.Models.Configuration;
+using IReckonUpload.Models.Internal;
 using IReckonUpload.Tools;
 using IReckonUpload.Uploader;
 using Microsoft.AspNetCore.Authorization;
@@ -9,6 +11,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,6 +26,7 @@ namespace IReckonUpload.Controllers
     [Authorize]
     public class UploadController : ControllerBase
     {
+        private readonly ITransactionService _transactionService;
         private readonly IHangfireWrapper _hangfire;
         private readonly IUploader _fileUploader;
         private readonly ILogger<UploadController> _logger;
@@ -33,8 +37,10 @@ namespace IReckonUpload.Controllers
         private static readonly FormOptions _defaultFormOptions = new FormOptions();
 
         public UploadController(ILogger<UploadController> logger, IUploader uploader, IHangfireWrapper hangfire,
-            IOptions<AppConfigurationOptions> appConfig)
+            IOptions<AppConfigurationOptions> appConfig,
+            ITransactionService transactionService)
         {
+            _transactionService = transactionService;
             _hangfire = hangfire;
             _fileUploader = uploader;
             _logger = logger;
@@ -56,25 +62,48 @@ namespace IReckonUpload.Controllers
             try
             {
                 EnsureJsonDirectoryExists();
-                var jsonFilePath = _appConfig.JsonStorageDirectory + "/" + Guid.NewGuid() + ".json";
-
+                
                 IUploadResult result = await _fileUploader.UploadFromStreamAsync(Request, HttpContext, _defaultFormOptions);
-                var ids = new Dictionary<string, Dictionary<string, string>>();
+                var uploadedFiles = new List<UploadedFile>();
 
                 result.Files.ToList().ForEach(file =>
                 {
-                    var dbStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreIntoDatabase>(x => x.Execute(file.TemporaryLocation));
-                    var jsonStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreAsJsonFile>(x => x.Execute(file.TemporaryLocation, jsonFilePath));
+                    var jsonFilePath = _appConfig.JsonStorageDirectory + "/" + Guid.NewGuid() + ".json";
 
-                    ids.Add(file.FileName, new Dictionary<string, string>
+                    var dbStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreIntoDatabase>(x => x.Execute(file.TemporaryLocation, null));
+                    var jsonStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreAsJsonFile>(x => x.Execute(file.TemporaryLocation, jsonFilePath, null));
+
+                    try
                     {
-                        { "StoreAsJsonJobID", jsonStoreJobId },
-                        { "StoreAsDbJobID", dbStoreJobId },
-                        { "JsonLocation", jsonFilePath }
-                    });
+                        this._transactionService.ExecuteAsync((dbCtx) =>
+                        {
+                            var uploadedFile = new UploadedFile
+                            {
+                                TempFilePath = file.TemporaryLocation,
+                                JsonFilePath = jsonFilePath,
+                                StoreTasks = new List<StoreTask>
+                                {
+                                    new StoreTask { JobId = dbStoreJobId },
+                                    new StoreTask { JobId = jsonStoreJobId }
+                                }
+                            };
+
+                            uploadedFiles.Add(uploadedFile);
+                            dbCtx.Set<UploadedFile>().Add(uploadedFile);
+
+                            return Task.CompletedTask;
+                        });
+                    }
+                    catch (Exception)
+                    {
+                        _hangfire.BackgroundJobClient.Delete(jsonStoreJobId);
+                        _hangfire.BackgroundJobClient.Delete(dbStoreJobId);
+
+                        throw;
+                    }
                 });
 
-                return Ok(ids);
+                return Ok(JsonConvert.SerializeObject(uploadedFiles));
             }
             catch (Exception e)
             {

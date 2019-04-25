@@ -46,7 +46,6 @@ namespace IReckonUpload.Extensions
                     .UseLazyLoadingProxies()
                     .UseSqlServer(connexionString)
             );
-            services.AddScoped<ITransactionService, TransactionService.TransactionService>();
             return services;
         }
     }

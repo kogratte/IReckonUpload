@@ -5,6 +5,7 @@ using IReckonUpload.DAL;
 using IReckonUpload.Extensions;
 using IReckonUpload.Models.Configuration;
 using IReckonUpload.Models.Consumers;
+using IReckonUpload.Models.Internal;
 using IReckonUpload.Tools;
 using IReckonUpload.Uploader;
 using Microsoft.AspNetCore.Builder;
@@ -45,17 +46,35 @@ namespace IReckonUpload
             services.Configure<AppConfigurationOptions>(appConfig);
             services.AddJwtAuthentication(appConfig);
             services.ConfigureDatabase(connectionString);
-            services.AddSingleton<DbContext, AppDbContext>();
+    // Always reuse the same.
+            services.AddScoped<DbContext, AppDbContext>();
+            services.AddSingleton<IHangfireWrapper, HangfireWrapper>();
+            services.AddSingleton(new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+            // Use on demande.
+            services.AddScoped<IAppDbContext, AppDbContext>();
+            services.AddScoped<IJobStatusManagementService, JobStatusManagementService>();
+            services.AddScoped<IStoreIntoDatabase, StoreIntoDatabase>();
+            services.AddScoped<IStoreAsJsonFile, StoreAsJsonFile>();
+            services.AddScoped<IDeleteTemporaryFile, DeleteTemporaryFile>();
+
+
+            services.AddScoped<ITransactionService, TransactionService.TransactionService>();
+            services.AddScoped<IRepository<UploadedFile>, GenericRepository<UploadedFile>>();
+            services.AddSingleton<IUploader, IReckonUpload.Uploader.Uploader>();
+            services.AddSingleton<IFileToModelConverter, FileToModelConverter>();
+
             if (Environment.IsDevelopment())
             {
-                services.AddTransient<IRepository<Consumer>, FakeConsumerRepository>();
+                services.AddScoped<IRepository<Consumer>, FakeConsumerRepository>();
             }
             else
             {
-                services.AddSingleton<IRepository<Consumer>, GenericRepository<Consumer>>();
+                services.AddScoped<IRepository<Consumer>, GenericRepository<Consumer>>();
             }
-
-            services.AddSingleton<IUploader, IReckonUpload.Uploader.Uploader>();
 
             services.AddSwaggerGen(c =>
             {
@@ -65,19 +84,8 @@ namespace IReckonUpload
                 c.IncludeXmlComments(filePath);
             });
 
-            services.AddSingleton<IHangfireWrapper, HangfireWrapper>();
 
             services.AddHangfire(x => x.UseSqlServerStorage(connectionString));
-
-            services.AddSingleton<IFileToModelConverter, FileToModelConverter>();
-            services.AddScoped<IStoreIntoDatabase, StoreIntoDatabase>();
-            services.AddScoped<IStoreAsJsonFile, StoreAsJsonFile>();
-
-            services.AddSingleton(new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -109,6 +117,10 @@ namespace IReckonUpload
 
             app.UseHttpsRedirection();
             app.UseMvc();
+
+
+            RecurringJob.AddOrUpdate<IDeleteTemporaryFile>(x => x.Execute(), Cron.Minutely);
+
         }
     }
 }
