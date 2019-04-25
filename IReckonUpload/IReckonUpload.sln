@@ -15,7 +15,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IReckonUpload.Tools.Tests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IReckonUpload.DAL", "IReckonUpload.Repositories\IReckonUpload.DAL.csproj", "{EAC3EA93-DBE4-41EB-891B-4151521DAE5C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Uploader", "IReckonUpload.Uploader\IReckonUpload.Uploader.csproj", "{CA43DE71-3760-405C-9353-81555E9F0D0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IReckonUpload.Uploader", "IReckonUpload.Uploader\IReckonUpload.Uploader.csproj", "{CA43DE71-3760-405C-9353-81555E9F0D0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Business", "IReckonUpload.Business\IReckonUpload.Business.csproj", "{8DE046DD-C3E0-4E65-BA2D-4799A85D7330}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.CSVGenerator", "IReckonUpload.CSVGenerator\IReckonUpload.CSVGenerator.csproj", "{34CCE0CE-5F2D-43FF-A05D-4D5EA237CCFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IReckonUpload.Business.Tests", "IReckonUpload.Business.Tests\IReckonUpload.Business.Tests.csproj", "{D64C6AF7-EE6B-46F3-98A8-F086987795EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +57,18 @@ Global
 		{CA43DE71-3760-405C-9353-81555E9F0D0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA43DE71-3760-405C-9353-81555E9F0D0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA43DE71-3760-405C-9353-81555E9F0D0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DE046DD-C3E0-4E65-BA2D-4799A85D7330}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DE046DD-C3E0-4E65-BA2D-4799A85D7330}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DE046DD-C3E0-4E65-BA2D-4799A85D7330}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DE046DD-C3E0-4E65-BA2D-4799A85D7330}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34CCE0CE-5F2D-43FF-A05D-4D5EA237CCFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34CCE0CE-5F2D-43FF-A05D-4D5EA237CCFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34CCE0CE-5F2D-43FF-A05D-4D5EA237CCFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34CCE0CE-5F2D-43FF-A05D-4D5EA237CCFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D64C6AF7-EE6B-46F3-98A8-F086987795EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D64C6AF7-EE6B-46F3-98A8-F086987795EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D64C6AF7-EE6B-46F3-98A8-F086987795EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D64C6AF7-EE6B-46F3-98A8-F086987795EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace IReckonUpload.DAL
 {
-    public abstract class GenericRepository<T> : IRepository<T> where T: class, new()
+    public class GenericRepository<T> : IRepository<T> where T: class, new()
     {
         private readonly DbSet<T> _set;
 

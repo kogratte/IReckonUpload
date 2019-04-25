@@ -12,13 +12,22 @@ using IReckonUpload.Models.Consumers;
 
 namespace IReckonUpload.Controllers
 {
+    /// <summary>
+    /// Allow a user to get a JWT Token
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    
     public class AuthenticationController: ControllerBase
     {
         private IRepository<Consumer> _consumerRepository;
         private readonly AppConfigurationOptions _config;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="consumerRepository"></param>
+        /// <param name="configuration"></param>
         public AuthenticationController(IRepository<Consumer> consumerRepository, IOptions<AppConfigurationOptions> configuration)
         {
             _consumerRepository = consumerRepository;
@@ -30,8 +39,14 @@ namespace IReckonUpload.Controllers
             }
         }
 
+        /// <summary>
+        /// Authenticate an user with the provided credentials.
+        /// 
+        /// If environment is development, you can use demo / demo to get a valid JWT.
+        /// </summary>
+        /// <param name="loginRequest"></param>
+        /// <returns>null if no user match the provided login / password</returns>
         [HttpPost]
-
         public LoginSuccessResponse Post(LoginRequest loginRequest)
         {
             Consumer user = _consumerRepository.FindOne(x => x.Username == loginRequest.Username && x.Password == Sha256Builder.Compute(loginRequest.Password));

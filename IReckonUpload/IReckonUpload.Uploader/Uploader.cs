@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,9 +13,10 @@ namespace IReckonUpload.Uploader
 {
     public class Uploader : IUploader
     {
-        public async Task<IUploadedItem> UploadFromStreamAsync(HttpRequest request, HttpContext httpContext, FormOptions formOptions)
+        public async Task<IUploadResult> UploadFromStreamAsync(HttpRequest request, HttpContext httpContext, FormOptions formOptions)
         {
-            
+            var files = new List<IMultipartFileInfo>();
+
             MediaTypeHeaderValue contentType = MediaTypeHeaderValue.Parse(request.ContentType);
             var boundary = MultipartRequestHelper.GetBoundary(contentType, formOptions.MultipartBoundaryLengthLimit);
 
@@ -22,7 +24,7 @@ namespace IReckonUpload.Uploader
 
             MultipartSection section = await reader.ReadNextSectionAsync();
 
-            var uploadedItem = new UploadedItem();
+            var formAccumulator = new KeyValueAccumulator();
 
             while (section != null)
             {
@@ -33,44 +35,77 @@ namespace IReckonUpload.Uploader
                 {
                     if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
                     {
-                        uploadedItem.FileStream = new MemoryStream();
-
-                        await section.Body.CopyToAsync(uploadedItem.FileStream);
+                        var formFile = new MultipartFileInfo
+                        {
+                            Name = section.AsFileSection().Name,
+                            FileName = section.AsFileSection().FileName,
+                            Length = section.Body.Length,
+                        };
+                        files.Add(await HandleFileSection(section, formFile));
                     }
                     else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
                     {
-                        uploadedItem.IsMultipart = true;
-                        uploadedItem.Parts = uploadedItem.Parts ?? new KeyValueAccumulator();
-
-                        var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
-                        var encoding = GetEncoding(section);
-                        using (var streamReader = new StreamReader(
-                            section.Body,
-                            encoding,
-                            detectEncodingFromByteOrderMarks: true,
-                            bufferSize: 1024,
-                            leaveOpen: true))
-                        {
-                            var value = await streamReader.ReadToEndAsync();
-                            if (string.Equals(value, "undefined", StringComparison.OrdinalIgnoreCase))
-                            {
-                                value = string.Empty;
-                            }
-
-                            uploadedItem.Parts?.Append(key.Value, value);
-
-                            if (uploadedItem.Parts?.ValueCount > formOptions.ValueCountLimit)
-                            {
-                                throw new InvalidDataException($"Form key count limit {formOptions.ValueCountLimit} exceeded.");
-                            }
-                        }
+                        formAccumulator = await AccumulateForm(formAccumulator, section, contentDisposition, formOptions);
                     }
                 }
                 
                 section = await reader.ReadNextSectionAsync();
             }
 
-            return uploadedItem;
+            return new UploadResult {
+                Model = formAccumulator.GetResults(),
+                Files = files
+            };
+        }
+        private async Task<IMultipartFileInfo> HandleFileSection(MultipartSection fileSection, IMultipartFileInfo formFile)
+        {
+            string targetFilePath;
+
+            targetFilePath = Path.GetTempFileName();
+
+            using (var targetStream = File.Create(targetFilePath))
+            {
+                await fileSection.Body.CopyToAsync(targetStream);
+            }
+
+            var tFormFile = new MultipartFileInfo
+            {
+                Name = formFile.Name,
+                Length = formFile.Length,
+                FileName = formFile.FileName,
+                TemporaryLocation = targetFilePath
+            };
+
+            return tFormFile;
+        }
+
+        private async Task<KeyValueAccumulator> AccumulateForm(KeyValueAccumulator formAccumulator, MultipartSection section, ContentDispositionHeaderValue contentDisposition, FormOptions formOptions)
+        {
+            var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
+            var encoding = GetEncoding(section);
+            using (var streamReader = new StreamReader(
+                section.Body,
+                encoding,
+                detectEncodingFromByteOrderMarks: true,
+                bufferSize: 20 * 1024,
+                leaveOpen: true))
+            {
+                var value = await streamReader.ReadToEndAsync();
+
+                if (string.Equals(value, "undefined", StringComparison.OrdinalIgnoreCase))
+                {
+                    value = string.Empty;
+                }
+
+                formAccumulator.Append(key.Value, value);
+
+                if (formAccumulator.ValueCount > formOptions.ValueCountLimit)
+                {
+                    throw new InvalidDataException($"Form key count limit {formOptions.ValueCountLimit} exceeded.");
+                }
+            }
+
+            return formAccumulator;
         }
 
         private static Encoding GetEncoding(MultipartSection section)

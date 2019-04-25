@@ -41,9 +41,12 @@ namespace IReckonUpload.Extensions
 
         public static IServiceCollection ConfigureDatabase(this IServiceCollection services, string connexionString)
         {
-            services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connexionString));
-            services.AddScoped<ITransactionService, TransactionService>();
-
+            services.AddDbContext<AppDbContext>(options => 
+                options
+                    .UseLazyLoadingProxies()
+                    .UseSqlServer(connexionString)
+            );
+            services.AddScoped<ITransactionService, TransactionService.TransactionService>();
             return services;
         }
     }
