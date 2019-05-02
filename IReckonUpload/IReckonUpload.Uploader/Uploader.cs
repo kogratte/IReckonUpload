@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace IReckonUpload.Uploader
 {
+    /// <summary>
+    /// This  upload engine as been designed using the official streaming api documentation
+    /// </summary>
     public class Uploader : IUploader
     {
         public async Task<IUploadResult> UploadFromStreamAsync(HttpRequest request, HttpContext httpContext, FormOptions formOptions)
@@ -52,6 +55,9 @@ namespace IReckonUpload.Uploader
                 section = await reader.ReadNextSectionAsync();
             }
 
+            // HERE their is something really bad. If my file is large, then the response is large.
+            // It may be more efficient to write all bites to disk and to return filestream.
+            // Next step? Do research, find an alternative!
             return new UploadResult {
                 Model = formAccumulator.GetResults(),
                 Files = files
@@ -83,6 +89,7 @@ namespace IReckonUpload.Uploader
         {
             var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
             var encoding = GetEncoding(section);
+            // Buffer size may be optimized depending on the running machine?
             using (var streamReader = new StreamReader(
                 section.Body,
                 encoding,
@@ -115,6 +122,7 @@ namespace IReckonUpload.Uploader
             // UTF-7 is insecure and should not be honored. UTF-8 will succeed in 
             // most cases.
             if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding))
+
             {
                 return Encoding.UTF8;
             }
