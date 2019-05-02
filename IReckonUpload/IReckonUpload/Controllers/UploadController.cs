@@ -68,11 +68,23 @@ namespace IReckonUpload.Controllers
 
                 result.Files.ToList().ForEach(file =>
                 {
+                    // The temporary file should be stored in a client specific folder.
                     string jsonFilePath = _appConfig.JsonStorageDirectory + "/" + Guid.NewGuid() + ".json";
 
-                    //var dbStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreIntoDatabase>(x => x.Execute(file.TemporaryLocation, null));
-                    //var jsonStoreJobId = _hangfire.BackgroundJobClient.Enqueue<IStoreAsJsonFile>(x => x.Execute(file.TemporaryLocation, jsonFilePath, null));
+                    // What?
+                    // Hangfire, a job management system.
+                    // Why?
+                    // Cause it allow us to respond to the customer as soon as possible, not with a final response, but with a status.
+                    // An endpoint to track progression should be added.
+                    // If the job fail, we're allowed to see it, see why, requeue it, redeploy a fresh binary with mandatory fixes and replay.
+                    // The used importer is very specific, but we can imagine a mechanism where the used importer is defined from customer configuration.
                     var importJobId = _hangfire.BackgroundJobClient.Enqueue<IImportContentFromFile>(x => x.Execute(file.TemporaryLocation, jsonFilePath));
+
+                    // The job is enqueued, and THEN the job is added to DB. But, what if the transaction failed?
+                    // The job is runned anyway, without any possibility to track it for
+                    // the end user.
+                    // I did not found a way to get the jobId inside the transaction. I need it to do the insertion.
+                    // The catch allow us to handle gracefully any error with the transaction, and warn the user that something goes wrong.
                     try
                     {
                         this._transactionService.ExecuteAsync((dbCtx) =>
@@ -81,6 +93,7 @@ namespace IReckonUpload.Controllers
                             {
                                 TempFilePath = file.TemporaryLocation,
                                 JsonFilePath = jsonFilePath,
+                                // Why a list? Not mandatory. At first look I did not use middlewares, but a pair of tasks.
                                 StoreTasks = new List<StoreTask>
                                 {
                                     new StoreTask { JobId = importJobId }
@@ -95,12 +108,13 @@ namespace IReckonUpload.Controllers
                     }
                     catch (Exception)
                     {
+                        // If something goes wrong, remove the job, rethrow the error.
                         _hangfire.BackgroundJobClient.Delete(importJobId);
 
                         throw;
                     }
                 });
-
+                // Here we send the response to the consumer, with the id of the importing task. Using another endpoint, he should be able to track progression.
                 return Ok(JsonConvert.SerializeObject(uploadedFiles));
             }
             catch (Exception e)

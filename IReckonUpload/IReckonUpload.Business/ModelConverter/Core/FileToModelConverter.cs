@@ -10,6 +10,9 @@ using Microsoft.Extensions.Logging;
 
 namespace IReckonUpload.Business.ModelConverter.Core
 {
+    /// <summary>
+    /// Convert the input file to the targeted model.
+    /// </summary>
     public class FileToModelConverter : IFileToModelConverter
     {
         private List<Color> colors;
@@ -25,6 +28,13 @@ namespace IReckonUpload.Business.ModelConverter.Core
             _middlewares = new List<IFileToModelConverterBaseMiddleware>();
         }
 
+        /// <summary>
+        /// Add the provided middleware to the middlewares list.
+        /// An improvement would be to sort middlewares by their usage, to avoid to find them at each loop.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="configure"></param>
+        /// <returns></returns>
         public IFileToModelConverter UseMiddleware<T>(Action<T> configure) where T : IFileToModelConverterBaseMiddleware
         {
             var middleware = _servicesProvider.GetService(typeof(T)) as IFileToModelConverterBaseMiddleware;
@@ -45,13 +55,27 @@ namespace IReckonUpload.Business.ModelConverter.Core
             return this;
         }
 
+        /// <summary>
+        /// We can remove the delegate, wich is unused here
+        /// </summary>
+        /// <param name="pathToFile">The path to the file to import</param>
+        /// <returns>The running task</returns>
         public Task ProcessFromFile(string pathToFile)
         {
             return this.ProcessFromFile(pathToFile, (p) => { });
         }
 
+        /// <summary>
+        /// Import the file to the destination model.
+        /// On each line, the configured middleware are applied with the generated object.
+        /// </summary>
+        /// <param name="pathToFile"></param>
+        /// <param name="process">A delegate how provide an action for each generated entry. Unused. Can be removed</param>
+        /// <returns>The running task</returns>
         public async Task ProcessFromFile(string pathToFile, Action<Product> process)
         {
+            // If middleware where sorted, we would be able to avoid the search loop.
+            // When they're only fews, it's not a big deal, but in a bigger app, it could became time consuming!
             _middlewares.Where(m => m is IFileToModelOnRun).ToList().ForEach(m =>
             {
                 try
@@ -91,6 +115,21 @@ namespace IReckonUpload.Business.ModelConverter.Core
             _middlewares.ToList().ForEach(async m => await m.OnDone());
         }
 
+        /// <summary>
+        /// Execute middleware for the generated entry. In our example this is writing the object to the json file, and adding an entry to the db transaction.
+        /// 
+        /// As explained here
+        /// https://aloiskraus.wordpress.com/2018/11/25/how-fast-can-you-get-with-net-core/
+        /// 
+        /// it seems the way I parse the file is the fastest one, but I do not have any doubt than there is another - more efficient - way.
+        /// 
+        /// We can't parallelise the file read, cause we'll explode the SSD throughput.
+        /// We can't use a buffer, cause it would cause an huge memory consumption.
+        /// 
+        /// Parallel execution would also face us in front of new problems with DB transaction...
+        /// </summary>
+        /// <param name="product">The generated product</param>
+        /// <returns>The running task</returns>
         private Task ExecuteOnProductReadMiddlewares(Product product)
         {
             var middlewareTasks = new List<Task>();
@@ -99,6 +138,8 @@ namespace IReckonUpload.Business.ModelConverter.Core
             {
                 middlewareTasks.Add(Task.Run(async () =>
                 {
+                    // I dislike the retry policy I choose.
+                    // In case of rewrite, use polly or another library
                     int tryCount = 3;
                     while (--tryCount > 0)
                     {
@@ -147,6 +188,15 @@ namespace IReckonUpload.Business.ModelConverter.Core
             };
         }
 
+        /// <summary>
+        /// Build the color object from the readed line.
+        /// 
+        /// Middleware usage is fine to get the targeted color from another source, but the result is not cached.
+        /// One of the provided middleware is looking into DB, and the cache lack could be a problem on big files.
+        /// </summary>
+        /// <param name="elements">Splitted readed line</param>
+        /// <param name="headers">A list of headers to retrieve the required informations</param>
+        /// <returns>The color object</returns>
         private Color BuildColor(string[] elements, Dictionary<string, int> headers)
         {
             var color = new Color
@@ -166,6 +216,12 @@ namespace IReckonUpload.Business.ModelConverter.Core
             return color;
         }
 
+        /// <summary>
+        /// Search the provided color using the configured middlewares.
+        /// If middlewares where sorted, the througput would be better.
+        /// </summary>
+        /// <param name="color">Color to search</param>
+        /// <returns>The found color, otherwise, null</returns>
         private Color FindColorUsingMiddlewares(Color color)
         {
             foreach (var middleware in _middlewares.Where(m => m is IFileToModelOnColorSearch).Select(m => m as IFileToModelOnColorSearch).ToList())
@@ -180,7 +236,14 @@ namespace IReckonUpload.Business.ModelConverter.Core
             return null;
         }
 
-
+        /// <summary>
+        /// Build the delivery range.
+        /// 
+        /// Could be improved caching the middleware result.
+        /// </summary>
+        /// <param name="elements">Splitted line</param>
+        /// <param name="headers">Headers list</param>
+        /// <returns>The delivery range</returns>
         private DeliveryRange BuildDeliveryRange(string[] elements, Dictionary<string, int> headers)
         {
             var range = new DeliveryRange
@@ -208,6 +271,13 @@ namespace IReckonUpload.Business.ModelConverter.Core
             return range;
         }
 
+        /// <summary>
+        /// Return the delivery range using middlewares
+        /// 
+        /// Could be improved using sorted middlewares
+        /// </summary>
+        /// <param name="range">The searched range</param>
+        /// <returns>The found range, or null</returns>
         private DeliveryRange FindDeliveryRangeUsingMiddlewares(DeliveryRange range)
         {
             foreach (var middleware in _middlewares.Where(m => m is IFileToModelOnRangeSearch).Select(m => m as IFileToModelOnRangeSearch).ToList())
