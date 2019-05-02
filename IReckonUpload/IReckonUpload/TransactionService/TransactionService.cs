@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace IReckonUpload.TransactionService
 {
+    /// <summary>
+    /// Would be interesting to make this service thread safe to allow concurrency usage
+    /// </summary>
     public class Transaction : ITransaction
     {
         private readonly IList<Action<DbContext>> Commands;

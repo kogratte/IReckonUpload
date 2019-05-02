@@ -13,6 +13,8 @@ namespace IReckonUpload.Uploader
 {
     /// <summary>
     /// This  upload engine as been designed using the official streaming api documentation
+    /// 
+    /// A benchmark using this method is available here: https://medium.com/@ma1f/file-streaming-performance-in-dotnet-4dee608dd953
     /// </summary>
     public class Uploader : IUploader
     {
@@ -55,9 +57,6 @@ namespace IReckonUpload.Uploader
                 section = await reader.ReadNextSectionAsync();
             }
 
-            // HERE their is something really bad. If my file is large, then the response is large.
-            // It may be more efficient to write all bites to disk and to return filestream.
-            // Next step? Do research, find an alternative!
             return new UploadResult {
                 Model = formAccumulator.GetResults(),
                 Files = files
